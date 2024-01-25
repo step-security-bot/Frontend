@@ -9,6 +9,9 @@ concurrency:
     group: '${{ github.workflow }}-${{ github.ref }}'
     cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
     build:
         name: 'Build container image'
@@ -23,12 +26,17 @@ jobs:
             IMAGE_TAG: 'experimental ${{ github.sha }}'
 
         steps:
+            - name: Harden Runner
+              uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
+              with:
+                egress-policy: audit
+
             - name: 'Checkout'
-              uses: actions/checkout@v4
+              uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
             - name: 'Build image'
               id: build_image
-              uses: redhat-actions/buildah-build@v2
+              uses: redhat-actions/buildah-build@b4dc19b4ba891854660ab1f88a097d45aa158f76 # v2.12
               with:
                   containerfiles: ./Containerfile
                   image: ${{ env.IMAGE_NAME }}
@@ -37,12 +45,12 @@ jobs:
 
             - name: 'Lowercase registry'
               id: registry_case
-              uses: ASzc/change-string-case-action@v6
+              uses: ASzc/change-string-case-action@d0603cd0a7dd490be678164909f65c7737470a7f # v6
               with:
                   string: ${{ env.IMAGE_REGISTRY }}
 
             - name: 'Push to GHCR'
-              uses: redhat-actions/push-to-registry@v2
+              uses: redhat-actions/push-to-registry@9986a6552bc4571882a4a67e016b17361412b4df # v2.7.1
               env:
                   REGISTRY_USER: ${{ github.actor }}
                   REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}

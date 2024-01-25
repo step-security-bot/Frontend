@@ -9,6 +9,9 @@ concurrency:
     group: '${{ github.workflow }}-${{ github.ref }}'
     cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
     prettify:
         name: 'Prettify code'
@@ -17,14 +20,19 @@ jobs:
             contents: write
 
         steps:
+            - name: Harden Runner
+              uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
+              with:
+                egress-policy: audit
+
             - name: 'Checkout'
-              uses: actions/checkout@v4
+              uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
               with:
                   fetch-depth: 0
                   ref: ${{ github.event.pull_request.head.ref }}
 
             - name: 'Setup package manager'
-              uses: pnpm/action-setup@v2
+              uses: pnpm/action-setup@d882d12c64e032187b2edb46d3a0d003b7a43598 # v2.4.0
               with:
                   standalone: true
 
@@ -32,7 +40,7 @@ jobs:
               run: pnpm install -D --frozen-lockfile --ignore-scripts
 
             - name: 'Run Prettier'
-              uses: creyD/prettier_action@v4.3
+              uses: creyD/prettier_action@31355f8eef017f8aeba2e0bc09d8502b13dbbad1 # v4.3
               with:
                   prettier_options: . --write
                   same_commit: true
